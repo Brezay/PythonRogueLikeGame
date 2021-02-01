@@ -1,10 +1,30 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from engine import Engine
+    from entity import Entity
+
+
 #creating sub-classes for action
 class Action:
-    pass
+    def perform(self, engine: Engine, entity: Entity) -> None:
+        """performs this action with the objects needed to determine its scope
+
+        "engine" is the scope this action is being performed in
+
+        "entity" is the object preforming this action
+
+        This method must be overridden by Action subclasses
+        """
+        raise NotImplementedError()
+        
 
 #if ESC has been pressed
 class EscapeAction(Action):
-    pass
+    def perform(self, engine: Engine, entity: Entity) -> None:
+        raise SystemExit()
 
 #player movement
 class MovementAction(Action): 
@@ -13,3 +33,14 @@ class MovementAction(Action):
 
         self.dx = dx
         self.dy = dy
+
+    def perform(self, engine: Engine, entity: Entity) -> None:
+        dest_x = entity.x + self.dx
+        dest_y = entity.y + self.dy
+
+        if not engine.game_map.in_bounds(dest_x, dest_y):
+            return #destination is out of bounds
+        if not engine.game_map.tiles["walkable"][dest_x, dest_y]:
+            return #destination is blocked by a tile
+        
+        entity.move(self.dx, self.dy)
